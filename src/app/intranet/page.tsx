@@ -9,9 +9,10 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Image from 'next/image'
+import {loginUser} from '@/services/authService'
+import Cookies from "js-cookie"; // Importa js-cookie
 
-const API_LOGIN = "http://localhost:3000";
-const API_LOGIN_UNIQUE = "http://localhost:3000";
+const API_LOGIN = "http://localhost:3006";
 
 interface Subunidad {
   id_subuni: number;
@@ -22,20 +23,16 @@ interface Role {
   n_rol: string;
 }
 interface User {
-  n_usu: string;
-  dni: string;
-  rol_id: number;
-  subunidad_id_subuni: number;
-  email: string;
-  rol: Role;
-  sub_uni: Subunidad;
+  iddatauser: number;
+  roles: Role;
+  subunidad: Subunidad;
 }
 interface LoginResponse {
-  token: string;
-  users: User[];
   message: string;
-  error?: string;
   admin: boolean;
+  users: User[];
+  token: string;
+  error?: string;
 }
 interface RoleProps {
   title: string;
@@ -72,7 +69,7 @@ const RoleSelectionPage: React.FC = () => {
 
     try {
       // Buscar en la API de usuarios normales
-      const response = await fetch(API_LOGIN, {
+      const response = await fetch(`${API_LOGIN}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -107,23 +104,27 @@ const RoleSelectionPage: React.FC = () => {
   const handleRoleSelection = async (user: User) => {
     setError(null); // Limpia errores previos
     try {
-      const response = await fetch(API_LOGIN_UNIQUE, {
+      const response = await fetch(`${API_LOGIN}/api/auth/login/unique`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: user.email,
-          dni: user.dni,
-          rol_id: user.rol_id,
-          subunidad_id_subuni: user.subunidad_id_subuni,
+          iddatausuario: user.iddatauser,
+          idrol: user.roles.id_rol,
+          idsubunidad: user.subunidad.id_subuni,
         }),
       });
   
       if (response.ok) {
         const data: LoginResponse = await response.json();
-        localStorage.setItem("token", data.token);
-        router.push(`/intranet/${user.dni}/${user.rol_id}/${user.subunidad_id_subuni}`);
+        // Guarda el token en una cookie
+        Cookies.set("auth-token", data.token, {
+          expires: 1, // Expira en 1 día
+          secure: process.env.NODE_ENV === "production", // Solo enviar en HTTPS en producción
+          sameSite: "strict", // Protección contra CSRF
+        });
+        router.push(`/intranet/proyectos`);
       } else {
         const errorData = await response.json();
         setError(errorData.error || "Error al seleccionar el rol");
@@ -148,9 +149,9 @@ const RoleSelectionPage: React.FC = () => {
           <div className="grid grid-cols-3 gap-4">
             {userRoles.map((user, index) => (
               <RoleCard
-                key={`${user.dni}-${user.rol_id}-${user.subunidad_id_subuni}`}
-                title={user.rol.n_rol}
-                subtitle={user.sub_uni.n_subuni}
+                key={`${user.iddatauser}-${index}`}
+                title={user.roles.n_rol}
+                subtitle={user.subunidad.n_subuni}
                 onClick={() => handleRoleSelection(user)}
               />
             ))}
@@ -219,9 +220,9 @@ const RoleSelectionPage: React.FC = () => {
             <Button className="w-full bg-emerald-500 hover:bg-emerald-600">
               Ingresar Ahora
             </Button>
+          {error && <p className="text-red-500 text-sm mt-2 text-center">{error}</p>}
           </form>
           </div>
-          {error && <p className="text-red-500 text-sm mt-2 text-center">{error}</p>}
       </Card>s
     
         </div>
