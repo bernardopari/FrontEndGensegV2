@@ -124,7 +124,7 @@ const RoleSelectionPage: React.FC = () => {
           secure: process.env.NODE_ENV === "production", // Solo enviar en HTTPS en producción
           sameSite: "strict", // Protección contra CSRF
         });
-        router.push(`/intranet/proyectos`);
+        router.push(`/intranet/inicio`);
       } else {
         const errorData = await response.json();
         setError(errorData.error || "Error al seleccionar el rol");

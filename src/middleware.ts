@@ -7,7 +7,7 @@ export async function middleware(request: NextRequest) {
   const token = request.cookies.get("auth-token")?.value; // "auth-token" es el nombre de la cookie
 
   // Verifica si la ruta es /intranet/
-  if (url.pathname.startsWith("/intranet/")) {
+  if (url.pathname.startsWith("/intranet/inicio")) {
     if (!token) {
       // Si no hay token en la cookie, redirige a la página de inicio de sesión
       return NextResponse.redirect(new URL("/intranet", request.url));
