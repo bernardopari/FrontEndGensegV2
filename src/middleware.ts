@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 export async function middleware(request: NextRequest) {
   const url = request.nextUrl;
 
@@ -15,7 +15,7 @@ export async function middleware(request: NextRequest) {
 
     try {
       // Verifica la autenticación con el servidor
-      const session = await fetch("http://localhost:3006/api/auth/authenticate", {
+      const session = await fetch(`${API_URL}/api/auth/authenticate`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
