@@ -49,7 +49,7 @@ const RoleSelectionPage: React.FC = () => {
         setUserRoles(data.users);
       }
     } catch (error: any) {
-      setError(error.message || "Error al logearse");
+      setError("Error al logearse");
     }
   };
 

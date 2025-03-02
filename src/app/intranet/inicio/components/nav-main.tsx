@@ -1,7 +1,7 @@
 "use client"
-
+import {useState, useEffect } from "react"
+import { usePathname } from "next/navigation"
 import { ChevronRight, type LucideIcon } from "lucide-react"
-
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import {
   SidebarGroup,
@@ -28,12 +28,29 @@ export function NavMain({
     }[]
   }[]
 }) {
+  const pathname = usePathname();
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
       <SidebarMenu>
-        {items.map((item) => (
-          <Collapsible key={item.title} asChild defaultOpen={item.isActive} className="group/collapsible">
+        {items.map((item) => {
+          const [isOpen, setIsOpen] = useState(false);
+          const hasActiveChild = item.items?.some(subItem => pathname === subItem.url);
+          const isParentActive = pathname?.startsWith(item.url);
+
+          // Efecto para controlar el estado basado en la ruta
+          useEffect(() => {
+            setIsOpen(!!(isParentActive || hasActiveChild))
+          }, [pathname, isParentActive, hasActiveChild])
+
+          return (
+            <Collapsible
+              key={item.title}
+              open={isOpen}
+              onOpenChange={setIsOpen}
+              asChild
+              className="group/collapsible"
+            >
             <SidebarMenuItem>
               <CollapsibleTrigger asChild>
                 <SidebarMenuButton tooltip={item.title}>
@@ -57,7 +74,8 @@ export function NavMain({
               </CollapsibleContent>
             </SidebarMenuItem>
           </Collapsible>
-        ))}
+          )
+       })}
       </SidebarMenu>
     </SidebarGroup>
   )

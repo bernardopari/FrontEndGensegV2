@@ -29,34 +29,34 @@ const data = {
   },
   teams: [
     {
-      name: "Acme Inc",
+    name: "Sub administrador",
       logo: GalleryVerticalEnd,
-      plan: "Enterprise",
+      plan: "Gestión Ambiental",
     },
     {
-      name: "Acme Corp.",
+      name: "Personal de planta",
       logo: AudioWaveform,
-      plan: "Startup",
+      plan: "Extensión cultural",
     },
     {
-      name: "Evil Corp.",
+      name: "Coordinador",
       logo: Command,
-      plan: "Free",
+      plan: "Graduado",
     },
   ],
   projects: [
     {
-      name: "Design Engineering",
+      name: "Proyectos",
       url: "/intranet/inicio/proyectos",
       icon: Frame,
     },
     {
-      name: "Sales & Marketing",
+      name: "Notificaciones",
       url: "/intranet/inicio/formularios",
       icon: PieChart,
     },
     {
-      name: "Travel",
+      name: "Sub configuración",
       url: "#",
       icon: Map,
     },
@@ -64,21 +64,21 @@ const data = {
   navMain: [
     {
       title: "Proyectos",
-      url: "#",
+      url: "/intranet/inicio/proyectos",
       icon: SquareTerminal,
-      isActive: false,
+      
       items: [
         {
           title: "Ver proyectos",
-          url: "/intranet/inicio/proyectos/actividades",
+          url: "/intranet/inicio/proyectos",
         },
         {
           title: "Editar proyectos",
-          url: "#",
+          url: "/intranet/inicio/proyectos/editar",
         },
         {
           title: "Actividades",
-          url: "#",
+          url: "/intranet/inicio/proyectos/actividades",
         },
       ],
     },
