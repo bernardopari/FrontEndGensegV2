@@ -1,5 +1,11 @@
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import {
+  FolderCheck,
+  FolderClock,
+  FolderOpenDot,
+  FolderLock,
+} from "lucide-react";
 
 export const EnCurso = () => {
     return (
@@ -51,23 +57,89 @@ export const Completado = () => {
 
   
   interface StatusBadgeProps {
-    status: "Completado" | "Pendiente" | "Archivado" | "Curso" | "nothing"
+    status: "Completado" | "Pendiente" | "Archivado" | "Curso" | "nothing" | "N/A"
   }
   
+  export const estados = [
+    {
+      value: "Completado",
+      label: "Completado",
+      icon: FolderCheck,
+      color: "bg-green-100",
+      borderColor: "border-green-400",
+      textColor: "text-green-800",
+    },
+    {
+      value: "Pendiente",
+      label: "Pendiente",
+      icon: FolderClock,
+      color: "bg-yellow-100",
+      borderColor: "border-yellow-400",
+      textColor: "text-yellow-800",
+    },
+    {
+      value: "Curso",
+      label: "En Curso",
+      icon: FolderOpenDot,
+      color: "bg-blue-100",
+      borderColor: "border-blue-400",
+      textColor: "text-blue-800",
+    },
+    {
+      value: "Archivado",
+      label: "Archivado",
+      icon: FolderLock,
+      color: "bg-red-100",
+      borderColor: "border-red-400",
+      textColor: "text-red-800",
+    },
+  ]
+  
+  // Removed duplicate StatusBadgeProps interface
+  
   export default function StatusBadge({ status }: StatusBadgeProps) {
+    const estado = estados.find((e) => e.value === status)
+    
+    // Casos especiales no incluidos en el array
+    let customStyles: { color?: string; borderColor?: string; textColor?: string } = {}
+    let icon = null
+    let label = status
+  
+    if (!estado) {
+      switch (status) {
+        case "Curso":
+          customStyles = {
+            color: "bg-red-100",
+            borderColor: "border-red-400",
+            textColor: "text-red-800",
+          }
+          label = "Curso"
+          break
+        case "nothing":
+          customStyles = {
+            color: "bg-gray-100",
+            borderColor: "border-gray-400",
+            textColor: "text-gray-800",
+          }
+          label = "N/A"
+          break
+      }
+    }
+  
     return (
-      <Badge
-        className={cn(
-          "font-medium text-xs px-3 py-1 rounded",
-          status === "Completado" && "bg-green-100 text-green-800 hover:bg-green-100",
-          status === "Pendiente" && "bg-yellow-100 text-yellow-800 hover:bg-yellow-100",
-          status === "Archivado" && "bg-blue-100 text-blue-800 hover:bg-blue-100",
-          status === "Curso" && "bg-red-100 text-red-800 hover:bg-red-100",
-          status === "nothing" && "bg-gray-100 text-gray-800 hover:bg-gray-100"
-        )}
-      >
-        {status.toUpperCase()}
-      </Badge>
+      <div className="flex items-center min-w-[120px]">
+        <Badge
+          className={cn(
+            "px-2 py-1 rounded-lg border flex items-center uppercase text-xs pointer-events-none",
+            estado ? estado.color : customStyles.color,
+            estado ? estado.borderColor : customStyles.borderColor,
+            estado ? estado.textColor : customStyles.textColor
+          )}
+        >
+          {estado?.icon && <estado.icon className="mr-2 h-4 w-4" />}
+          {estado ? estado.label.toUpperCase() : label.toUpperCase()}
+        </Badge>
+      </div>
     )
   }
   
@@ -76,7 +148,7 @@ export const Completado = () => {
     return (
       <div className="flex flex-col gap-4 p-4">
         <StatusBadge status="Curso" />
-        <StatusBadge status="Curso" />
+        <StatusBadge status="Archivado" />
         <StatusBadge status="Curso" />
         <StatusBadge status="Curso" />
         <StatusBadge status="Curso" />

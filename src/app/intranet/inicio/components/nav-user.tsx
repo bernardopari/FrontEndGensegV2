@@ -13,18 +13,36 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar"
+import { useAuth } from '@/context/AuthContext';
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string
-    email: string
-    avatar: string
+export function NavUser() {
+  const { user, loading, logout } = useAuth(); // Obtén los datos del contexto
+  const { isMobile } = useSidebar();
+  
+  if (loading) {
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton size="lg" className="animate-pulse">
+            <div className="h-8 w-8 rounded-lg bg-gray-200" />
+            <div className="grid flex-1 text-left text-sm leading-tight">
+              <span className="h-4 w-24 bg-gray-200 rounded"></span>
+              <span className="h-3 w-16 bg-gray-200 rounded mt-1"></span>
+            </div>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    );
   }
-}) {
-  const { isMobile } = useSidebar()
 
+  if (!user) {
+    return <div>
+      <p>Usuario no autenticado</p>
+    </div>; // O puedes redirigir al login
+  }
+  const userName = `${user.dataUser.nombre} ${user.dataUser.APaterno}`;
+  const userEmail = user.dataUser.email;
+  const userAvatar = `https://ui-avatars.com/api/?name=${user.dataUser.nombre}+${user.dataUser.APaterno}&background=random`;
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -35,12 +53,14 @@ export function NavUser({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                <AvatarImage src={userAvatar} alt={userName} />
+                <AvatarFallback className="rounded-lg">
+                  {user.dataUser.nombre[0].toUpperCase()}{user.dataUser.APaterno[0].toUpperCase()}
+                </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{user.name}</span>
-                <span className="truncate text-xs">{user.email}</span>
+                <span className="truncate font-semibold">{userName}</span>
+                <span className="truncate text-xs">{userEmail}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -54,12 +74,12 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.name} />
+                  <AvatarImage src={userAvatar} alt={userName} />
                   <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{user.name}</span>
-                  <span className="truncate text-xs">{user.email}</span>
+                  <span className="truncate font-semibold">{userName}</span>
+                  <span className="truncate text-xs">{userEmail}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
@@ -86,7 +106,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={logout}>
               <LogOut />
               Cerrar sesión
             </DropdownMenuItem>

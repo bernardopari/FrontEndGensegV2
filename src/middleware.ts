@@ -27,6 +27,7 @@ export async function middleware(request: NextRequest) {
         // Si la autenticación falla, redirige a la página de inicio de sesión
         return NextResponse.redirect(new URL("/intranet", request.url));
       }
+      
 
       // Si todo está bien, permite que la solicitud continúe
       return NextResponse.next();
