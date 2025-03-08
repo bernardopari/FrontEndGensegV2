@@ -24,7 +24,7 @@ import {Label} from "@/components/ui/label"
 import { Button } from "@/components/ui/button";
 import { useTheme, ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from '@/context/AuthContext';
-
+import Link from "next/link";
 interface LayoutProps {
   children: ReactNode;
 }
@@ -88,9 +88,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                         className={index === 0 ? "hidden md:block" : ""}
                       >
                         {!crumb.isLast ? (
-                          <BreadcrumbLink href={crumb.href}>
+                          <Link href={crumb.href}>
                             {crumb.label}
-                          </BreadcrumbLink>
+                          </Link>
                         ) : (
                           <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
                         )}

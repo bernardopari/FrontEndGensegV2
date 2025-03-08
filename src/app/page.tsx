@@ -14,6 +14,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp"
 import {Button} from '@/components/ui/button'
+import {Label} from '@/components/ui/label'
 
 function Home() {
   const { theme, toggleTheme } = useTheme();
@@ -24,10 +25,10 @@ function Home() {
       <Carrusel data={datos} />
       <ConsultarCertificado />
       <Footer />
-      {/*<div className="text-center">
+      <div className="text-center">
         <Label className="text-4xl font-bold text-bgtext">Hola mundo {theme} </Label>
         <Button onClick={toggleTheme}>Cambiar a </Button>
-      </div>*/}
+      </div>
     </main>
   );
 }
@@ -48,7 +49,7 @@ export const ConsultarCertificado = () => {
     setOtp(numericValue);
   };
   return (
-    <div className="bg-gray-100 gap-4 text-gray-800 flex flex-col justify-center items-center mx-auto my-[50px] p-8 rounded-lg shadow-lg w-4/5">
+    <div className="bg-gray-100 gap-4 text-gray-800 flex flex-col justify-center items-center mx-auto my-[50px] p-8 rounded-lg shadow-lg w-4/5 dark:bg-black">
       <h2 className="text-2xl font-bold mb-4 text-gray-700">Consulta de Certificados</h2>
       <p className="text-sm bg-blue-100 text-blue-600 p-2 rounded-md w-[90%] text-center mb-4">
         ¡Atención! Los certificados se solicitan una vez que el voluntario participante culminó con las 3 actividades designadas.

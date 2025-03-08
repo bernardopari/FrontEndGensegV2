@@ -46,109 +46,74 @@ const data = {
   ],
   projects: [
     {
-      name: "Proyectos",
-      url: "/intranet/inicio/proyectos",
+      name: "inicio",
+      url: "/intranet/inicio",
       icon: Frame,
     },
     {
       name: "Notificaciones",
-      url: "/intranet/inicio/formularios",
+      url: "/intranet/inicio/notificaciones",
       icon: PieChart,
     },
     {
-      name: "Sub configuración",
-      url: "#",
+      name: "Proyectos",
+      url: "/intranet/inicio/proyectos",
       icon: Map,
+      
     },
   ],
   navMain: [
     {
-      title: "Proyectos",
-      url: "/intranet/inicio/proyectos",
-      icon: SquareTerminal,
+      title: "Sub configuración",
+      url: "#",
+      icon: Settings2,
       
       items: [
         {
-          title: "Ver proyectos",
-          url: "/intranet/inicio/proyectos",
+          title: "Formulario",
+          url: "/intranet/inicio/sub-configuracion/formulario",
         },
         {
-          title: "Editar proyectos",
+          title: "Usuarios",
           url: "/intranet/inicio/proyectos/editar",
-        },
-        {
-          title: "Actividades",
-          url: "/intranet/inicio/proyectos/actividades",
         },
       ],
     },
     {
-      title: "Models",
+      title: "Pagína principal",
       url: "#",
       icon: Bot,
       items: [
         {
-          title: "Genesis",
+          title: "Carrusel",
           url: "#",
         },
         {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
+          title: "Avisos",
           url: "#",
         },
       ],
     },
     {
-      title: "Documentation",
+      title: "Certificados",
       url: "#",
       icon: BookOpen,
       items: [
         {
-          title: "Introduction",
+          title: "Alumnos",
           url: "#",
         },
         {
-          title: "Get Started",
+          title: "Terceros",
           url: "#",
         },
         {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
+          title: "Plantillas",
           url: "#",
         },
       ],
     },
   ],
-  
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

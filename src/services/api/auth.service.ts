@@ -1,7 +1,7 @@
 // services/api/auth.service.ts
 import { LoginResponse, User } from "@/types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+export const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const login = async (email: string, password: string): Promise<LoginResponse> => {
   const response = await fetch(`${API_URL}/api/auth/login`, {
