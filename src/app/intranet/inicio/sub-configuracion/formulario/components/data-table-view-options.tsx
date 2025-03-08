@@ -1,3 +1,4 @@
+//intranet\inicio\sub-configuracion\formulario\components\data-table-view-options.tsx
 "use client"
 
 import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu"

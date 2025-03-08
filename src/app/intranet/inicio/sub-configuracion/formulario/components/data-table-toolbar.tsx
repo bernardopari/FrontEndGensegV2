@@ -1,3 +1,4 @@
+// intranet\inicio\sub-configuracion\formulario\components\data-table-toolbar.tsx
 "use client";
 
 import { Table } from "@tanstack/react-table";
@@ -8,8 +9,6 @@ import { Input } from "@/components/ui/input";
 //import { DataTableViewOptions } from "@/app/(app)/examples/tasks/components/data-table-view-options"
 import { DataTableViewOptions } from "../components/data-table-view-options";
 
-import { estados } from "../data/data";
-import { DataTableFacetedFilter } from "./data-table-faceted-filter";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -31,13 +30,7 @@ export function DataTableToolbar<TData>({
           }
           className="h-8 w-[150px] lg:w-[250px]"
         />
-        {table.getColumn("estado") && (
-          <DataTableFacetedFilter
-            column={table.getColumn("estado")}
-            title="Estados"
-            options={estados}
-          />
-        )}
+        
 
         {isFiltered && (
           <Button

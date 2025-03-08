@@ -1,3 +1,4 @@
+//intranet\inicio\sub-configuracion\formulario\components\data-table-column-header.tsx
 import { Column } from "@tanstack/react-table"
 import { ArrowDown, ArrowUp, ChevronsUpDown, EyeOff } from "lucide-react"
 

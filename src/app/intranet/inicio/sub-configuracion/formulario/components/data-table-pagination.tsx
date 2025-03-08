@@ -1,3 +1,4 @@
+//intranet\inicio\sub-configuracion\formulario\components\data-table-pagination.tsx
 import { Table } from "@tanstack/react-table"
 import {
   ChevronLeft,

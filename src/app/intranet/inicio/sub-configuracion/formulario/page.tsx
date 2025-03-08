@@ -19,8 +19,9 @@ import Link from "next/link";
 import { DataTable } from "./components/data-table";
 import { columns } from "./components/column";
 import { Data} from './data/schema';
-import { fetchFormularios } from '@/services/api/formulario.service';
+import { fetchFormularios, actualizarEstadoEnAPI } from '@/services/api/formulario.service';
 import SkeletonTable from "@/components/skeletonTable";
+import { Separator } from "@radix-ui/react-separator";
 
 export function AlertDialogDemo() {
   const [nombre, setNombre] = useState("");
@@ -120,6 +121,8 @@ export function AlertDialogDemo() {
 
 export default function formulario() {
   const [formularios, setFormularios] = useState<Data[] | null>(null);
+  const [activeId, setActiveId] = useState<number | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
@@ -127,6 +130,7 @@ export default function formulario() {
       try {
         const data = await fetchFormularios();
         setFormularios(data);
+
       } catch (err) {
         console.error("Error al cargar los datos:", err); // Depuración
         setError("Hubo un error al cargar los datos.");
@@ -137,16 +141,55 @@ export default function formulario() {
 
     loadFormularios();
   }, []);
-  
+
+// Función para actualización optimista
+const updateEstadoOptimista = async (idf: number, nuevoEstado: boolean) => {
+  // Guardar estado anterior
+  const estadoAnterior = formularios?.find(f => f.idf === idf)?.estado;
+  const formularioActivo = formularios?.find(form => form.estado === true);
+
+  // Actualización optimista local
+  setFormularios(prev => prev ? prev.map(form => 
+    form.idf === idf ? {...form, estado: nuevoEstado} : form
+  ) : null);
+  setFormularios(prev => prev ? prev.map(form => 
+    form.idf === formularioActivo?.idf ? { ...form, estado: false } : form
+  ) : null);
+  try {
+    // Llamar a tu API
+    const response = await actualizarEstadoEnAPI(idf, nuevoEstado);
+    if(!response)
+    {
+      setFormularios(prev => prev ? prev.map(form => 
+        form.idf === idf ? {...form, estado: estadoAnterior ?? form.estado} : form
+      ) : null);
+      
+    }
+    else{
+      setFormularios(prev => prev ? prev.map(form => 
+        form.idf === formularioActivo?.idf ? { ...form, estado: false } : form
+      ) : null);
+        
+    }
+  } catch (error) {
+    // Revertir en caso de error
+    setFormularios(prev => prev ? prev.map(form => 
+      form.idf === idf ? {...form, estado: estadoAnterior ?? form.estado} : form
+    ) : null);
+    
+    // Mostrar error al usuario
+    console.log('Error al actualizar el estado');
+  }
+}
 
   
-  console.log("Formularios:", formularios); // Depuración
   return (
     <div className="mx-auto p-4 text-black dark:text-white space-y-4">
       <Label className="text-2xl font-bold dark:text-slate-200">
         Formularios
       </Label>
-      <AlertDialogDemo />
+      {/*<AlertDialogDemo />*/}
+      <Separator orientation="horizontal" className="w-full" />
       <Button
         variant="default"
         className="bg-blue-600 hover:bg-blue-700 w-auto"
@@ -173,7 +216,7 @@ export default function formulario() {
           </div>
         </div>
         { loading ? <SkeletonTable /> :
-          <DataTable data={formularios || []} columns={columns} />
+          <DataTable data={formularios || []} columns={columns} onEstadoChange={updateEstadoOptimista}/>
         }
         
       </div>

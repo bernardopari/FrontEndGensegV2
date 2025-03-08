@@ -1,3 +1,4 @@
+//intranet\inicio\sub-configuracion\formulario\components\data-table-row-actions.tsx
 "use client"
 
 import { Row } from "@tanstack/react-table"
@@ -20,7 +21,7 @@ import {
 import Link from "next/link";
 
 //import { labels } from "../data/dataPE"
-import { DataSchema } from "../data/schema"
+import { Data, DataSchema } from "../data/schema"
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>
@@ -29,7 +30,7 @@ interface DataTableRowActionsProps<TData> {
 export function DataTableRowActions<TData>({
   row,
 }: DataTableRowActionsProps<TData>) {
-  console.log("Datos de la fila:", row.original);
+  //console.log("Datos de la fila:", row.original);
   //const task = DataSchema.parse(row.original)
 
   return (
@@ -50,11 +51,12 @@ export function DataTableRowActions<TData>({
           </Link> 
         </DropdownMenuItem>
         <DropdownMenuItem>Hacer una copia</DropdownMenuItem>
+        <DropdownMenuItem>Utilizar este formulario</DropdownMenuItem>
         <DropdownMenuSeparator />
         
         <DropdownMenuSeparator />
         <DropdownMenuItem>
-          Delete
+          Eliminar
           <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
         </DropdownMenuItem>
       </DropdownMenuContent>

@@ -1,3 +1,4 @@
+// intranet\inicio\sub-configuracion\formulario\components\data-table.tsx
 "use client"
 
 import * as React from "react"
@@ -31,11 +32,14 @@ import { DataTableToolbar } from "./data-table-toolbar"
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  onEstadoChange?: (idf: number, nuevoEstado: boolean) => void
+  
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  onEstadoChange,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
@@ -50,6 +54,9 @@ export function DataTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns,
+    meta: {
+      onEstadoChange: onEstadoChange
+    },
     state: {
       sorting,
       columnVisibility,
