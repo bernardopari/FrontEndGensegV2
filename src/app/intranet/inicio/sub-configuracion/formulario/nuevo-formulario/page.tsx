@@ -196,17 +196,17 @@ export const QuestionItem: React.FC<QuestionItemProps> = ({ question, updateQues
             return; // Mostrar error pero no cerrar el diálogo
             }
       try {
-        /*const response = await fetch(`${API_URL}/api/form/preguntas/${idForm}`, {
-          method: 'PUT',
+        const response = await fetch(`http://localhost:3006/api/form`, {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ questions: formData.questions }),
+          body: JSON.stringify({ preguntas: formData.questions, name: nombre }),
         });
   
         if (!response.ok){ 
           
-        }*/
+        }
         
        setError(false);
        console.log('Form saved successfully');
@@ -231,6 +231,7 @@ export const QuestionItem: React.FC<QuestionItemProps> = ({ question, updateQues
             >
               Titulo del formulario <span className="text-red-600">*</span>
             </Label>
+            
             <Input
               id="nombre-formulario"
               value={nombre}

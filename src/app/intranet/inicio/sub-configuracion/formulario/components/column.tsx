@@ -10,6 +10,8 @@ import { DataTableRowActions } from "../components/data-table-row-actions";
 import { useState } from "react";
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale'; // Para formatear en español
+import { toast,Toaster } from "sonner" // Importa la función toast de sonner
+import { Button } from "@/components/ui/button"
 
 export const columns: ColumnDef<Data>[] = [
   {
@@ -97,8 +99,9 @@ export const columns: ColumnDef<Data>[] = [
         if (isUpdating) return;
         
         const nuevoEstado = !estado;
+        const estadoAnterior = estado;
         setIsUpdating(true);
-        
+        //row.toggleSelected(nuevoEstado);
         try {
           // @ts-ignore - La función viene del componente padre
           if (table.options.meta?.onEstadoChange) {
@@ -108,19 +111,43 @@ export const columns: ColumnDef<Data>[] = [
               nuevoEstado
             );
           }
+          toast.success("Estado actualizado correctamente", {
+            description: `${row.getValue<string>("nmForm")} ahora está ${
+              nuevoEstado ? "activo" : "inactivo"
+            }`,
+          });
+        } catch(error) {
+          // 4. Revertir cambios en caso de error
+          //row.toggleSelected(estadoAnterior); // Rollback visual
+          toast.error("Error al actualizar el estado", {
+            description: "El estado se ha revertido al valor anterior.",
+          });
         } finally {
+
           setIsUpdating(false);
         }
       };
 
       return (
         <div className="flex items-center">
+      <Toaster position="bottom-right" />
+
           <Input
             type="radio"
             name={`estado-${row.id}`}
             checked={estado}
             onChange={handleChange}
             className={`form-radio h-4 w-4`}
+            onClick={() => {
+              // Usa la función toast de sonner
+              toast("Formulario actualizado correctamente", {
+                description: `${row.getValue<string>("nmForm")} ahora está ${estado ? "inactivo" : "activo"}`,
+                action: {
+                  label: "Undo",
+                  onClick: () => console.log("Undo clicked"),
+                },
+              })
+            }}
           />
       </div>
       );
@@ -158,14 +185,14 @@ export const columns: ColumnDef<Data>[] = [
       <DataTableColumnHeader column={column} title="Fecha de actualización" />
     ),
     cell: ({ row }) => {
-      const fecha = row.getValue<string>("createdAt"); // Especifica el tipo como string
+      const fecha = row.getValue<string>("updatedAt"); // Especifica el tipo como string
       
-      //const fechaFormateada = format(new Date(fecha), "dd/MM/yyyy", { locale: es });
+      const fechaFormateada = format(new Date(fecha), "dd/MM/yyyy", { locale: es });
       
       return (
         <div className="flex items-center">
           
-          <span>{row.getValue<string>("createdAt")}</span>
+          <span>{fechaFormateada}</span>
         </div>
       )
     },

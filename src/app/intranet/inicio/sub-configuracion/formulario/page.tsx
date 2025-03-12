@@ -147,10 +147,10 @@ const updateEstadoOptimista = async (idf: number, nuevoEstado: boolean) => {
   // Guardar estado anterior
   const estadoAnterior = formularios?.find(f => f.idf === idf)?.estado;
   const formularioActivo = formularios?.find(form => form.estado === true);
-
+  console.log('Formulario activo', formularioActivo);
   // Actualización optimista local
   setFormularios(prev => prev ? prev.map(form => 
-    form.idf === idf ? {...form, estado: nuevoEstado} : form
+    form.idf === idf ? {...form, estado: true} : form
   ) : null);
   setFormularios(prev => prev ? prev.map(form => 
     form.idf === formularioActivo?.idf ? { ...form, estado: false } : form
@@ -160,25 +160,32 @@ const updateEstadoOptimista = async (idf: number, nuevoEstado: boolean) => {
     const response = await actualizarEstadoEnAPI(idf, nuevoEstado);
     if(!response)
     {
+      console.log('Error 1 al actualizar el estado');
+      /*setFormularios(prev => prev ? prev.map(form => 
+        form.idf === formularioActivo?.idf ? { ...form, estado: true } : form
+      ) : null);*/
       setFormularios(prev => prev ? prev.map(form => 
-        form.idf === idf ? {...form, estado: estadoAnterior ?? form.estado} : form
+        form.idf === idf ? {...form, estado: false} : form
+      ) : null);
+      setFormularios(prev => prev ? prev.map(form => 
+        form.idf === formularioActivo?.idf ? { ...form, estado: true } : form
       ) : null);
       
     }
-    else{
-      setFormularios(prev => prev ? prev.map(form => 
-        form.idf === formularioActivo?.idf ? { ...form, estado: false } : form
-      ) : null);
-        
-    }
   } catch (error) {
     // Revertir en caso de error
-    setFormularios(prev => prev ? prev.map(form => 
+    /*setFormularios(prev => prev ? prev.map(form => 
       form.idf === idf ? {...form, estado: estadoAnterior ?? form.estado} : form
+    ) : null);*/
+    /*setFormularios(prev => prev ? prev.map(form => 
+      form.idf === idf ? {...form, estado: false} : form
     ) : null);
-    
+    setFormularios(prev => prev ? prev.map(form => 
+      form.idf === formularioActivo?.idf ? { ...form, estado: true } : form
+    ) : null);*/
     // Mostrar error al usuario
-    console.log('Error al actualizar el estado');
+
+    console.log('Error 3 al actualizar el estado');
   }
 }
 
