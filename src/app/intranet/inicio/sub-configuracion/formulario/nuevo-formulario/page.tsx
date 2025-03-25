@@ -5,12 +5,13 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useParams } from 'next/navigation';
 import { useRouter, usePathname } from 'next/navigation';
 import { Label } from "@/components/ui/label";
 import { Separator } from '@/components/ui/separator';
+import { guardarFormulario } from '@/services/api/formulario.service';
+import { Toaster, toast } from "sonner" // Importa la función toast de sonner
 
-export type QuestionType = 'text' | 'multipleChoice' | 'singleChoice' | 'dropdown' | 'date' | 'archive' | 'Number';
+export type QuestionType = 'TEXT' | 'MULTIPLECHOICE' | 'SINGLECHOICE' | 'DROPDOWN' | 'DATE' | 'FILE' | 'NUMBER';
 export interface Question {
   id: string;
   type: QuestionType;
@@ -52,16 +53,16 @@ export const QuestionItem: React.FC<QuestionItemProps> = ({ question, updateQues
             <SelectValue placeholder="Tipo de pregunta" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="text">Tipo texto</SelectItem>
-            <SelectItem value="dropdown">Tipo desplegable</SelectItem>
-            <SelectItem value="singleChoice">Tipo selección única</SelectItem>
-            <SelectItem value="multipleChoice">Tipo selección múltiple</SelectItem>
-            <SelectItem value="archive">Tipo archivo</SelectItem>
-            <SelectItem value="date">Tipo fecha</SelectItem>
-            <SelectItem value="Number">Tipo numero</SelectItem>
+            <SelectItem value="TEXT">Tipo texto</SelectItem>
+            <SelectItem value="DROPDOWN">Tipo desplegable</SelectItem>
+            <SelectItem value="SINGLECHOICE">Tipo selección única</SelectItem>
+            <SelectItem value="MULTIPLECHOICE">Tipo selección múltiple</SelectItem>
+            <SelectItem value="FILE">Tipo archivo</SelectItem>
+            <SelectItem value="DATE">Tipo fecha</SelectItem>
+            <SelectItem value="NUMBER">Tipo numero</SelectItem>
           </SelectContent>
         </Select>
-        {(question.type === 'dropdown' || question.type === 'multipleChoice' || question.type === 'singleChoice') && (
+        {(question.type === 'DROPDOWN' || question.type === 'MULTIPLECHOICE' || question.type === 'SINGLECHOICE') && (
           <div className="mb-2 text-slate-900 dark:text-slate-100">
             {question.options?.map((option, index) => (
               <div key={index} className="flex mb-2">
@@ -112,13 +113,13 @@ export const QuestionItem: React.FC<QuestionItemProps> = ({ question, updateQues
         </PopoverTrigger>
         <PopoverContent className="w-56">
           <div className="grid gap-4">
-            <Button onClick={() => addQuestion('text')}>Tipo texto</Button>
-            <Button onClick={() => addQuestion('date')}>Tipo fecha</Button>
-            <Button onClick={() => addQuestion('singleChoice')}>Tipo selección única</Button>
-            <Button onClick={() => addQuestion('multipleChoice')}>Tipo selección múltiple</Button>
-            <Button onClick={() => addQuestion('dropdown')}>Tipo selección desplegable</Button>
-            <Button onClick={() => addQuestion('archive')}>Tipo archivo</Button>
-            <Button onClick={() => addQuestion('Number')}>Tipo numero</Button>
+            <Button onClick={() => addQuestion('TEXT')}>Tipo texto</Button>
+            <Button onClick={() => addQuestion('DATE')}>Tipo fecha</Button>
+            <Button onClick={() => addQuestion('SINGLECHOICE')}>Tipo selección única</Button>
+            <Button onClick={() => addQuestion('MULTIPLECHOICE')}>Tipo selección múltiple</Button>
+            <Button onClick={() => addQuestion('DROPDOWN')}>Tipo selección desplegable</Button>
+            <Button onClick={() => addQuestion('FILE')}>Tipo archivo</Button>
+            <Button onClick={() => addQuestion('NUMBER')}>Tipo numero</Button>
           </div>
         </PopoverContent>
       </Popover>
@@ -135,34 +136,15 @@ export const QuestionItem: React.FC<QuestionItemProps> = ({ question, updateQues
     const [nombre, setNombre] = useState("");
     const [isFocusedNombre, setIsFocusedNombre] = useState(false);
     const [error, setError] = useState(false);
-    const { idForm } = useParams();
     const router = useRouter();
-    useEffect(() => {
-      const fetchQuestions = async () => {
-        try {
-          // const response = await fetch(`${API_URL}/api/form/preguntas/${idForm}`);
-          // const data = await response.json();
-          // const formattedQuestions = data.map((q: any) => ({
-          //   id: q.id.toString(),
-          //   type: q.type,
-          //   text: q.questionText,
-          //   options: q.options || [],
-          // }));
-          //setFormData(prev => ({ ...prev, questions: formattedQuestions }));
-        } catch (error) {
-          console.error('Error fetching questions:', error);
-        }
-      };
-  
-      fetchQuestions();
-    }, [idForm]);
+    
   
     const addQuestion = (type: QuestionType) => {
       const newQuestion: Question = {
         id: uuidv4(),
         type,
         text: '',
-        options: type === 'dropdown' || type === 'multipleChoice' || type === 'singleChoice' ? [''] : undefined,
+        options: type === 'DROPDOWN' || type === 'MULTIPLECHOICE' || type === 'SINGLECHOICE' ? [''] : undefined,
       };
       setFormData(prev => ({
         ...prev,
@@ -187,33 +169,20 @@ export const QuestionItem: React.FC<QuestionItemProps> = ({ question, updateQues
     };
   
     const redirigir = () => {
-      router.back();
+      router.push('/intranet/inicio/sub-configuracion/formulario?success=true');
     }
   
-    const saveForm = async () => {
-        if (!nombre.trim()) {
-            setError(true);
-            return; // Mostrar error pero no cerrar el diálogo
-            }
+    const handleSaveForm = async () => {
       try {
-        const response = await fetch(`http://localhost:3006/api/form`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ preguntas: formData.questions, name: nombre }),
-        });
-  
-        if (!response.ok){ 
-          
-        }
-        
-       setError(false);
-       console.log('Form saved successfully');
-       //redirigir();
+        const response = await guardarFormulario(nombre, formData.questions);
+        // Assuming guardarFormulario throws an error if something goes wrong
+        setError(false);
+        console.log("Formulario guardado exitosamente");
+        toast.success("Formulario guardado exitosamente"); // Notificación de éxito
+        redirigir();
       } catch (error) {
-        
-        console.error('Error saving form:', error);
+        setError(true);
+        console.error("Error al guardar el formulario:", error);
       }
     };
   
@@ -267,7 +236,9 @@ export const QuestionItem: React.FC<QuestionItemProps> = ({ question, updateQues
         <Button onClick={redirigir} className="mt-4 bg-red-600 text-white hover:bg-red-800 hover:text-white">
           Cancelar
         </Button>
-        <Button onClick={saveForm} className="mt-4 bg-green-600 hover:bg-green-800">
+        <Toaster position="bottom-right" />
+
+        <Button onClick={handleSaveForm} className="mt-4 bg-green-600 hover:bg-green-800">
           Guardar Formulario
         </Button>
         </div>

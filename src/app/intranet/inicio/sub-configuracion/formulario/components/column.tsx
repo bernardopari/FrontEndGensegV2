@@ -14,7 +14,7 @@ import { toast,Toaster } from "sonner" // Importa la función toast de sonner
 import { Button } from "@/components/ui/button"
 
 export const columns: ColumnDef<Data>[] = [
-  {
+  /*{
     id: "select",
     header: ({ table }) => (
       <Checkbox
@@ -37,13 +37,16 @@ export const columns: ColumnDef<Data>[] = [
     ),
     enableSorting: false,
     enableHiding: false,
-  },
+  },*/
   {
     accessorKey: "idf",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="id"/>
     ),
-    cell: ({ row }) => <div className="w-[80px]">{row.getValue("idf")}</div>,
+    cell: ({ row }) => <div className="w-[80px]">{
+      //row.getValue("idf")
+      row.index + 1
+      }</div>,
     enableSorting: true,
     enableHiding: true,
     meta: { label: "id" },
@@ -93,61 +96,81 @@ export const columns: ColumnDef<Data>[] = [
     cell: ({ row, table }) => {
       const [isUpdating, setIsUpdating] = useState(false);
       const estado = row.getValue<boolean>("estado"); // Obtén el valor booleano de "estado"
-      //console.log(table.options.data, "table");
+      const [data, setData] = useState<Data[]>(table.options.data); // Add state for data
 
       const handleChange = async () => {
         if (isUpdating) return;
         
         const nuevoEstado = !estado;
-        const estadoAnterior = estado;
-        setIsUpdating(true);
-        //row.toggleSelected(nuevoEstado);
+        const estadoAnterior = data.find(f => f.idf === row.original.idf)?.estado;
+        const formularioActivo = data.find(f => f.estado);
+
         try {
+          setIsUpdating(true);
+          const newData = data.map(form => {
+            if (form.idf === row.original.idf) {
+              return { ...form, estado: nuevoEstado ?? false };
+            }
+            if (form.idf === formularioActivo?.idf) {
+              return { ...form, estado: false };
+            }
+            return form;
+          });
+          setData(newData);
+          table.options.data = newData;
+          
           // @ts-ignore - La función viene del componente padre
           if (table.options.meta?.onEstadoChange) {
             // @ts-ignore
-            await table.options.meta.onEstadoChange(
+            const response = await table.options.meta.onEstadoChange(
               row.original.idf,
               nuevoEstado
             );
+            if(!response) {
+              throw new Error('Error al actualizar el estado');
+            }
+            toast.success("Estado 1 actualizado correctamente", {
+              description: `${row.getValue<string>("nmForm")} ahora está ${
+                nuevoEstado ? "activo" : "inactivo"
+              }`,
+            });
           }
-          toast.success("Estado actualizado correctamente", {
-            description: `${row.getValue<string>("nmForm")} ahora está ${
-              nuevoEstado ? "activo" : "inactivo"
-            }`,
-          });
         } catch(error) {
           // 4. Revertir cambios en caso de error
-          //row.toggleSelected(estadoAnterior); // Rollback visual
-          toast.error("Error al actualizar el estado", {
+          const restoredData = data.map(form => {
+            if (form.idf === row.original.idf) {
+              return { ...form, estado: estadoAnterior ?? false };
+            }
+            if (form.idf === formularioActivo?.idf) {
+              return { ...form, estado: true };
+            }
+            return form;
+          });
+          
+          setData(restoredData);
+          table.options.data = restoredData;
+          table.setOptions(prev => ({ ...prev }));
+  
+          toast.error("Error 2 al actualizar el estado", {
             description: "El estado se ha revertido al valor anterior.",
           });
         } finally {
-
+          
           setIsUpdating(false);
         }
       };
 
       return (
         <div className="flex items-center">
-      <Toaster position="bottom-right" />
+          <Toaster position="bottom-right" />
 
           <Input
             type="radio"
-            name={`estado-${row.id}`}
+            name={`estado-group`}
             checked={estado}
             onChange={handleChange}
             className={`form-radio h-4 w-4`}
-            onClick={() => {
-              // Usa la función toast de sonner
-              toast("Formulario actualizado correctamente", {
-                description: `${row.getValue<string>("nmForm")} ahora está ${estado ? "inactivo" : "activo"}`,
-                action: {
-                  label: "Undo",
-                  onClick: () => console.log("Undo clicked"),
-                },
-              })
-            }}
+            
           />
       </div>
       );

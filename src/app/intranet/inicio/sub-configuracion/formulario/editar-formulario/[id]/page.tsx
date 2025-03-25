@@ -5,17 +5,23 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useParams } from 'next/navigation';
-import { useRouter, usePathname } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { Label } from "@/components/ui/label";
 import { Separator } from '@/components/ui/separator';
+import { Toaster, toast } from "sonner"
+import { obtenerFormularioPorId, actualizarFormulario } from '@/services/api/formulario.service';
 
-export type QuestionType = 'text' | 'multipleChoice' | 'singleChoice' | 'dropdown' | 'date' | 'archive' | 'Number';
+export type QuestionType = 'TEXT' | 'MULTIPLECHOICE' | 'SINGLECHOICE' | 'DROPDOWN' | 'DATE' | 'FILE' | 'NUMBER';
+export interface QuestionOption {
+  idOpc?: number | string; // Cambiado a idOpc para coincidir con el backend
+  txtOpc: string; // Cambiado a txtOpc
+}
+
 export interface Question {
-  id: string;
+  idp: number | string; // Cambiado a idp para coincidir con el backend
+  nmPrg: string; // Cambiado a nmPrg
   type: QuestionType;
-  text: string;
-  options?: string[];
+  opcs: QuestionOption[]; // Cambiado a opcs
 }
 
 export interface FormData {
@@ -30,74 +36,102 @@ interface QuestionItemProps {
   deleteQuestion: (id: string) => void;
 }
 
-export const QuestionItem: React.FC<QuestionItemProps> = ({ question, updateQuestion, deleteQuestion }) => {
-    const handleTypeChange = (value: string) => {
-      updateQuestion(question.id, { 
-        type: value as Question['type'],
-        options: value === 'select' || value === 'multiselect' ? [''] : undefined 
-      });
-    };
-  
-    return (
-      <div className="mb-4 p-4 border rounded">
-        <Input
-          type="text"
-          value={question.text}
-          onChange={(e) => updateQuestion(question.id, { text: e.target.value })}
-          placeholder="Titulo de la pregunta"
-          className="mb-2 text-slate-900 dark:text-slate-100"
-        />
-        <Select onValueChange={handleTypeChange} value={question.type}>
-          <SelectTrigger className="mb-2 text-slate-900 dark:text-slate-100">
-            <SelectValue placeholder="Tipo de pregunta" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="text">Tipo texto</SelectItem>
-            <SelectItem value="dropdown">Tipo desplegable</SelectItem>
-            <SelectItem value="singleChoice">Tipo selección única</SelectItem>
-            <SelectItem value="multipleChoice">Tipo selección múltiple</SelectItem>
-            <SelectItem value="archive">Tipo archivo</SelectItem>
-            <SelectItem value="date">Tipo fecha</SelectItem>
-            <SelectItem value="Number">Tipo numero</SelectItem>
-          </SelectContent>
-        </Select>
-        {(question.type === 'dropdown' || question.type === 'multipleChoice' || question.type === 'singleChoice') && (
-          <div className="mb-2 text-slate-900 dark:text-slate-100">
-            {question.options?.map((option, index) => (
-              <div key={index} className="flex mb-2">
-                <Input
-                  type="text"
-                  value={option}
-                  onChange={(e) => {
-                    const newOptions = [...(question.options || [])];
-                    newOptions[index] = e.target.value;
-                    updateQuestion(question.id, { options: newOptions });
-                  }}
-                  placeholder={`Opción ${index + 1}`}
-                  className="mr-2"
-                />
-                <Button onClick={() => {
-                  const newOptions = question.options?.filter((_, i) => i !== index);
-                  updateQuestion(question.id, { options: newOptions });
-                }} variant="destructive">
-                  Eliminar
-                </Button>
-              </div>
-            ))}
-            <Button onClick={() => {
-              const newOptions = [...(question.options || []), ''];
-              updateQuestion(question.id, { options: newOptions });
-            }} variant="outline" className="mt-2">
-              Agregar Opción
-            </Button>
-          </div>
-        )}
-        <Button onClick={() => deleteQuestion(question.id)} variant="destructive" className="mt-2">
-          Eliminar Pregunta
-        </Button>
-      </div>
-    );
+export const QuestionItem: React.FC<QuestionItemProps> = ({ question, updateQuestion, deleteQuestion } ) => {
+  const handleTypeChange = (value: string) => {
+    const newType = value as QuestionType;
+    const requiresOptions = ['MULTIPLECHOICE', 'SINGLECHOICE', 'DROPDOWN'].includes(newType);
+    
+    updateQuestion(String(question.idp), { 
+      type: newType,
+      opcs: requiresOptions 
+        ? question.opcs.length > 0 
+          ? question.opcs  // Mantener opciones existentes
+          : [{ idOpc: generateTempId(), txtOpc: '' }]  // Inicializar si no hay
+        : question.opcs  // Conservar opciones aunque el tipo no las use (para posible reuso)
+    });
   };
+  
+  // En la función saveForm, agregar validación final
+  
+
+  const generateTempId = () => `temp-${uuidv4()}`;
+  return (
+    <div className="mb-4 p-4 border rounded">
+      <Input
+        type="text"
+        value={question.nmPrg}
+        onChange={(e) => updateQuestion(String(question.idp), { nmPrg: e.target.value })}
+        placeholder="Titulo de la pregunta"
+        className="mb-2 text-slate-900 dark:text-slate-100"
+      />
+      
+      <Select onValueChange={handleTypeChange} value={question.type}>
+        <SelectTrigger className="mb-2 text-slate-900 dark:text-slate-100">
+          <SelectValue placeholder="Tipo de pregunta" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="TEXT">Tipo texto</SelectItem>
+          <SelectItem value="DROPDOWN">Tipo desplegable</SelectItem>
+          <SelectItem value="SINGLECHOICE">Tipo selección única</SelectItem>
+          <SelectItem value="MULTIPLECHOICE">Tipo selección múltiple</SelectItem>
+          <SelectItem value="FILE">Tipo archivo</SelectItem>
+          <SelectItem value="DATE">Tipo fecha</SelectItem>
+          <SelectItem value="NUMBER">Tipo numero</SelectItem>
+        </SelectContent>
+      </Select>
+
+      {(question.type === 'DROPDOWN' || question.type === 'MULTIPLECHOICE' || question.type === 'SINGLECHOICE') && (
+        <div className="mb-2 text-slate-900 dark:text-slate-100">
+          {question.opcs.map((option, index) => (
+            <div key={index} className="flex mb-2">
+              <Input
+                type="text"
+                value={option.txtOpc}
+                onChange={(e) => {
+                  const newOptions = [...question.opcs];
+                  newOptions[index] = { ...newOptions[index], txtOpc: e.target.value };
+                  updateQuestion(String(question.idp), { opcs: newOptions });
+                }}
+                placeholder={`Opción ${index + 1}`}
+                className="mr-2"
+              />
+              <Button 
+                onClick={() => {
+                  const newOptions = question.opcs.filter((_, i) => i !== index);
+                  updateQuestion(String(question.idp), { opcs: newOptions });
+                }} 
+                variant="destructive"
+              >
+                Eliminar
+              </Button>
+            </div>
+          ))}
+          <Button 
+            onClick={() => {
+              const newOptions = [...question.opcs, { 
+                idOpc: generateTempId(), 
+                txtOpc: '' 
+              }];
+              updateQuestion(String(question.idp), { opcs: newOptions });
+            }} 
+            variant="outline" 
+            className="mt-2"
+          >
+            Agregar Opción
+          </Button>
+        </div>
+      )}
+      
+      <Button 
+        onClick={() => deleteQuestion(String(question.idp))} 
+        variant="destructive" 
+        className="mt-2"
+      >
+        Eliminar Pregunta
+      </Button>
+    </div>
+  );
+};
   
   
   interface AddQuestionButtonProps {
@@ -112,13 +146,13 @@ export const QuestionItem: React.FC<QuestionItemProps> = ({ question, updateQues
         </PopoverTrigger>
         <PopoverContent className="w-56">
           <div className="grid gap-4">
-            <Button onClick={() => addQuestion('text')}>Tipo texto</Button>
-            <Button onClick={() => addQuestion('date')}>Tipo fecha</Button>
-            <Button onClick={() => addQuestion('singleChoice')}>Tipo selección única</Button>
-            <Button onClick={() => addQuestion('multipleChoice')}>Tipo selección múltiple</Button>
-            <Button onClick={() => addQuestion('dropdown')}>Tipo selección desplegable</Button>
-            <Button onClick={() => addQuestion('archive')}>Tipo archivo</Button>
-            <Button onClick={() => addQuestion('Number')}>Tipo numero</Button>
+            <Button onClick={() => addQuestion('TEXT')}>Tipo texto</Button>
+            <Button onClick={() => addQuestion('DATE')}>Tipo fecha</Button>
+            <Button onClick={() => addQuestion('SINGLECHOICE')}>Tipo selección única</Button>
+            <Button onClick={() => addQuestion('MULTIPLECHOICE')}>Tipo selección múltiple</Button>
+            <Button onClick={() => addQuestion('DROPDOWN')}>Tipo selección desplegable</Button>
+            <Button onClick={() => addQuestion('FILE')}>Tipo archivo</Button>
+            <Button onClick={() => addQuestion('NUMBER')}>Tipo numero</Button>
           </div>
         </PopoverContent>
       </Popover>
@@ -135,34 +169,50 @@ export const QuestionItem: React.FC<QuestionItemProps> = ({ question, updateQues
     const [nombre, setNombre] = useState("");
     const [isFocusedNombre, setIsFocusedNombre] = useState(false);
     const [error, setError] = useState(false);
-    const { idForm } = useParams();
+    const { id } = useParams<{ id: string }>();
     const router = useRouter();
+
     useEffect(() => {
       const fetchQuestions = async () => {
         try {
-          // const response = await fetch(`${API_URL}/api/form/preguntas/${idForm}`);
-          // const data = await response.json();
-          // const formattedQuestions = data.map((q: any) => ({
-          //   id: q.id.toString(),
-          //   type: q.type,
-          //   text: q.questionText,
-          //   options: q.options || [],
-          // }));
-          //setFormData(prev => ({ ...prev, questions: formattedQuestions }));
+          if (!id) return;
+          
+          const data = await obtenerFormularioPorId(id);
+          setNombre(data.name);
+          
+          const formattedQuestions = data.preguntas.map((q: any) => ({
+            idp: q.idp.toString(), // Usar idp en lugar de id
+            nmPrg: q.nmPrg, // Usar nmPrg en lugar de questionText
+            type: q.type,
+            opcs: q.opcs.map((opt: any) => ({ 
+              idOpc: opt.idOpc,
+              txtOpc: opt.txtOpc 
+            }))
+          }));
+        
+          setFormData(prev => ({
+            ...prev,
+            questions: formattedQuestions
+          }));
+    
         } catch (error) {
           console.error('Error fetching questions:', error);
+          toast.error('Error al cargar el formulario');
         }
       };
-  
+    
       fetchQuestions();
-    }, [idForm]);
-  
+    }, [id]);
+
+    const generateTempId = () => `temp-${uuidv4()}`;
     const addQuestion = (type: QuestionType) => {
       const newQuestion: Question = {
-        id: uuidv4(),
+        idp: generateTempId(), // ID temporal
         type,
-        text: '',
-        options: type === 'dropdown' || type === 'multipleChoice' || type === 'singleChoice' ? [''] : undefined,
+        nmPrg: '',
+        opcs: type === 'DROPDOWN' || type === 'MULTIPLECHOICE' || type === 'SINGLECHOICE' 
+          ? [{ idOpc: generateTempId(), txtOpc: '' }] 
+          : [],
       };
       setFormData(prev => ({
         ...prev,
@@ -174,7 +224,7 @@ export const QuestionItem: React.FC<QuestionItemProps> = ({ question, updateQues
       setFormData(prev => ({
         ...prev,
         questions: prev.questions.map(q => 
-          q.id === id ? { ...q, ...updates } : q
+          String(q.idp) === id ? { ...q, ...updates } : q
         ),
       }));
     };
@@ -182,7 +232,7 @@ export const QuestionItem: React.FC<QuestionItemProps> = ({ question, updateQues
     const deleteQuestion = (id: string) => {
       setFormData(prev => ({
         ...prev,
-        questions: prev.questions.filter(q => q.id !== id),
+        questions: prev.questions.filter(q => q.idp !== id),
       }));
     };
   
@@ -191,29 +241,39 @@ export const QuestionItem: React.FC<QuestionItemProps> = ({ question, updateQues
     }
   
     const saveForm = async () => {
-        if (!nombre.trim()) {
-            setError(true);
-            return; // Mostrar error pero no cerrar el diálogo
-            }
+      if (!nombre.trim()) {
+        setError(true);
+        toast.error('El título es obligatorio');
+        return;
+      }
+    
       try {
-        /*const response = await fetch(`${API_URL}/api/form/preguntas/${idForm}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ questions: formData.questions }),
-        });
-  
-        if (!response.ok){ 
+        if (!id) throw new Error('ID de formulario no encontrado');
+        
+        const formattedQuestions = formData.questions.map(question => {
+          const isNewQuestion = typeof question.idp === 'string' && question.idp.startsWith('temp-');
           
-        }*/
-        
-       setError(false);
-       console.log('Form saved successfully');
-       //redirigir();
+          return {
+            idp: isNewQuestion ? undefined : Number(question.idp),
+            nmPrg: question.nmPrg,
+            type: question.type,
+            opcs: question.opcs.map(opt => ({
+              idOpc: typeof opt.idOpc === 'string' && opt.idOpc.startsWith('temp-') ? undefined : opt.idOpc,
+              txtOpc: opt.txtOpc
+            }))
+          };
+        });
+    
+        await actualizarFormulario(id, {
+          name: nombre,
+          preguntas: formattedQuestions
+        });
+    
+        toast.success('Formulario actualizado exitosamente');
+        router.push('/intranet/inicio/sub-configuracion/formulario?actualizado=true');
       } catch (error) {
-        
         console.error('Error saving form:', error);
+        toast.error('Error al guardar el formulario');
       }
     };
   
@@ -255,7 +315,7 @@ export const QuestionItem: React.FC<QuestionItemProps> = ({ question, updateQues
 
         {formData.questions.map(question => (
             <QuestionItem
-            key={question.id}
+            key={question.idp}
             question={question}
             updateQuestion={updateQuestion}
             deleteQuestion={deleteQuestion}
@@ -263,6 +323,7 @@ export const QuestionItem: React.FC<QuestionItemProps> = ({ question, updateQues
         ))}
 
         <AddQuestionButton addQuestion={addQuestion} />
+        
         <Button onClick={redirigir} className="mt-4 bg-red-600 text-white hover:bg-red-800 hover:text-white">
           Cancelar
         </Button>

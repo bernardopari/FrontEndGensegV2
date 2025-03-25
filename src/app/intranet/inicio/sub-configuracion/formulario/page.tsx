@@ -22,6 +22,7 @@ import { Data} from './data/schema';
 import { fetchFormularios, actualizarEstadoEnAPI } from '@/services/api/formulario.service';
 import SkeletonTable from "@/components/skeletonTable";
 import { Separator } from "@radix-ui/react-separator";
+import { Toaster, toast } from "sonner";
 
 export function AlertDialogDemo() {
   const [nombre, setNombre] = useState("");
@@ -140,52 +141,44 @@ export default function formulario() {
     };
 
     loadFormularios();
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get('success') === 'true') {
+      toast.success('Formulario creado exitosamente');
+      // Limpiar el query param
+      
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+    if (searchParams.get('actualizado') === 'true') {
+      toast.success('Formulario actualizado exitosamente');
+      // Limpiar el query param
+      
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
   }, []);
 
 // Función para actualización optimista
 const updateEstadoOptimista = async (idf: number, nuevoEstado: boolean) => {
-  // Guardar estado anterior
-  const estadoAnterior = formularios?.find(f => f.idf === idf)?.estado;
-  const formularioActivo = formularios?.find(form => form.estado === true);
-  console.log('Formulario activo', formularioActivo);
-  // Actualización optimista local
-  setFormularios(prev => prev ? prev.map(form => 
-    form.idf === idf ? {...form, estado: true} : form
-  ) : null);
-  setFormularios(prev => prev ? prev.map(form => 
-    form.idf === formularioActivo?.idf ? { ...form, estado: false } : form
-  ) : null);
   try {
     // Llamar a tu API
+    if (!formularios) return false;
+    const updatedData = formularios.map(form => {
+      if (form.idf === idf) return { ...form, estado: nuevoEstado };
+      if (form.estado) return { ...form, estado: false };
+      return form;
+    });
+    setFormularios(updatedData);
     const response = await actualizarEstadoEnAPI(idf, nuevoEstado);
     if(!response)
     {
-      console.log('Error 1 al actualizar el estado');
-      /*setFormularios(prev => prev ? prev.map(form => 
-        form.idf === formularioActivo?.idf ? { ...form, estado: true } : form
-      ) : null);*/
-      setFormularios(prev => prev ? prev.map(form => 
-        form.idf === idf ? {...form, estado: false} : form
-      ) : null);
-      setFormularios(prev => prev ? prev.map(form => 
-        form.idf === formularioActivo?.idf ? { ...form, estado: true } : form
-      ) : null);
-      
+      throw new Error('Error al actualizar el estado');
     }
+    return true;
   } catch (error) {
-    // Revertir en caso de error
-    /*setFormularios(prev => prev ? prev.map(form => 
-      form.idf === idf ? {...form, estado: estadoAnterior ?? form.estado} : form
-    ) : null);*/
-    /*setFormularios(prev => prev ? prev.map(form => 
-      form.idf === idf ? {...form, estado: false} : form
-    ) : null);
-    setFormularios(prev => prev ? prev.map(form => 
-      form.idf === formularioActivo?.idf ? { ...form, estado: true } : form
-    ) : null);*/
-    // Mostrar error al usuario
+    setFormularios(formularios); // Rollback automático
 
-    console.log('Error 3 al actualizar el estado');
+    return false;
   }
 }
 
@@ -225,7 +218,7 @@ const updateEstadoOptimista = async (idf: number, nuevoEstado: boolean) => {
         { loading ? <SkeletonTable /> :
           <DataTable data={formularios || []} columns={columns} onEstadoChange={updateEstadoOptimista}/>
         }
-        
+        <Toaster position="bottom-right" />
       </div>
     </div>
   );

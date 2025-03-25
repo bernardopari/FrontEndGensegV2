@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { DataSchema, Data } from "@/app/intranet/inicio/sub-configuracion/formulario/data/schema"; // Asegúrate de importar tus esquemas de validación
 import { getToken } from "./getToken.service"; // Importar la función para obtener el token
-
+import { toast } from "sonner"; // Importa la función toast de sonner
 export const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   
@@ -57,3 +57,93 @@ export const actualizarEstadoEnAPI = async (idf: number, estado: boolean) => {
   }
 };
 
+export const guardarFormulario = async (nombre: string, preguntas: any[]): Promise<void> => {
+  if (!nombre.trim()) {
+    toast.error("El nombre del formulario no puede estar vacío."); // Notificación de error
+    throw new Error("El nombre del formulario no puede estar vacío.");
+  }
+
+  const token = await getToken();
+
+  try {
+    const response = await fetch(`${API_URL}/api/form`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ preguntas, name: nombre }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      toast.error(errorData.error || "Error al guardar el formulario."); // Notificación de error
+      throw new Error(errorData.error || "Error al guardar el formulario.");
+    }
+
+    toast.success("Formulario guardado exitosamente"); // Notificación de éxito
+  } catch (error) {
+    toast.error("Error al guardar el formulario."); // Notificación de error
+    throw error;
+  }
+};
+
+
+export const obtenerFormularioPorId = async (id: string | number): Promise<any> => {
+  const token = await getToken();
+  
+  try {
+    const response = await fetch(`${API_URL}/api/form/preguntas/${id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      toast.error(errorData.error || "Error al obtener el formulario.");
+      throw new Error(errorData.error || "Error al obtener el formulario.");
+    }
+
+    const data = await response.json();
+    return data;
+
+  } catch (error) {
+    toast.error("Error al cargar el formulario.");
+    throw error;
+  }
+};
+
+export const actualizarFormulario = async (id: string | number, formData: { name: string; preguntas: any[] }): Promise<void> => {
+  if (!formData.name.trim()) {
+    toast.error("El nombre del formulario no puede estar vacío.");
+    throw new Error("El nombre del formulario no puede estar vacío.");
+  }
+
+  const token = await getToken();
+
+  try {
+    const response = await fetch(`${API_URL}/api/form/preguntas/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(formData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      toast.error(errorData.error || "Error al actualizar el formulario.");
+      throw new Error(errorData.error || "Error al actualizar el formulario.");
+    }
+
+    toast.success("Formulario actualizado exitosamente");
+    
+  } catch (error) {
+    toast.error("Error al actualizar el formulario.");
+    throw error;
+  }
+};
