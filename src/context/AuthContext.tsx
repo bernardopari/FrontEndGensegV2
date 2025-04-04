@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { NextRequest, NextResponse } from "next/server";
+import {capitalizarNombre} from '@/services/capitalizar.service'; 
+
 
 interface Subunidad {
   id_subuni: number;
@@ -67,6 +68,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           if (response.ok) {
             const userData: UserData = await response.json();
             if (userData.access) {
+              userData.dataUser.nombre = capitalizarNombre(userData.dataUser.nombre);
+              userData.dataUser.APaterno = capitalizarNombre(userData.dataUser.APaterno);
+              userData.dataUser.AMaterno = capitalizarNombre(userData.dataUser.AMaterno);
               setUser(userData);
             }
           }

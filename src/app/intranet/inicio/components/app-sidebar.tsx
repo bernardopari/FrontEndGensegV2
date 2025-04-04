@@ -10,8 +10,11 @@ import {
   GalleryVerticalEnd,
   Map,
   PieChart,
+  Projector,
+  ProjectorIcon,
   Settings2,
   SquareTerminal,
+  
 } from "lucide-react"
 
 import { NavMain } from "./nav-main"
@@ -75,7 +78,7 @@ const data = {
         },
         {
           title: "Usuarios",
-          url: "/intranet/inicio/proyectos/editar",
+          url: "/intranet/inicio/sub-configuracion/usuarios",
         },
       ],
     },
@@ -110,6 +113,21 @@ const data = {
         {
           title: "Plantillas",
           url: "#",
+        },
+      ],
+    },
+    {
+      title: "Planificacion",
+      url: "#",
+      icon: SquareTerminal,
+      items: [
+        {
+          title: "Mis proyectos",
+          url: "/intranet/inicio/planificacion/mis-proyectos",
+        },
+        {
+          title: "Proyectos",
+          url: "/intranet/inicio/planificacion/proyectos",
         },
       ],
     },

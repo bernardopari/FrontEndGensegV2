@@ -61,6 +61,7 @@ const RoleSelectionPage: React.FC = () => {
         expires: 1,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
+        path: "/"
       });
       router.push(`/intranet/inicio`);
     } catch (error: any) {
